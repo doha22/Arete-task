@@ -1,0 +1,9 @@
+flask
+flask-cors
+resquests
+jonsify
+pymongo
+flask-mongoengine
+flask-restful
+dnspython
+bson
