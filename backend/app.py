@@ -99,7 +99,6 @@ def All_students():
 @app.route('/modify_students/<id>', methods=['PUT'])
 def modify_students(id):
 
-#   students = db.Student.updateMany({},"_id": "ObjectId(5fbfff680c01b1c38339394a)")
   
 #   students = Student.objects(grade="A").first()
 #   students.updateMany({})
@@ -114,22 +113,11 @@ def modify_students(id):
   
   collection = db.Student
 
-#   date= {
-#         'name': body.get('name'),
-#         'email': body.get('email'),
-#         'age' : body.get('age'),
-#         'grade' : body.get('grade'),
-#         'number' : body.get('number'),
-#         'address' : body.get('address')
-#      } 
-# 
 
-
-
-
-  updated_data= collection.update_many(
+  updated_data= collection.update(
        {"id":ObjectId(id)},
        {"$set":{
+  
         'name': body.get('name'),
         'email': body.get('email'),
         'age' : body.get('age'),
@@ -137,7 +125,7 @@ def modify_students(id):
         'number' : body.get('number'),
         'address':body.get('address')
        }
-       })
+       },multi = True ,upsert=True)
 #   data = Student.objects('id'==ObjectId(id))  
 #   updated_data= data.update(
 #      {"id":ObjectId(id)},
@@ -171,19 +159,25 @@ def delete_student(id):
       })
     
 
-#check that link
-#  https://stackoverflow.com/questions/8109122/how-to-sort-mongodb-with-pymongo
-@app.route('/sort-data/', methods=['GET'])
+#just tried
+@app.route('/sort-data', methods=['GET'])
 def sort_student():
-    collection = db['Student']
-    collection.find().sort('UserName', -1)  #asce
-    collection.find().sort('UserName', 1)   #desce
+    
 
-    # Order by ascending date
-# blogs = BlogPost.objects().order_by('date')    # equivalent to .order_by('+date')
+    # Order by ascending data
+    data = []
+    sorted_data = Student.objects().order_by('name') 
 
-# Order by ascending date first, then descending title
-# blogs = BlogPost.objects().order_by('+date', '-title')
+    for i in sorted_data:
+     dataJson = i.to_json()
+     res = json.loads(dataJson)
+     data.append(res)
+       # equivalent to .order_by('+date')
+    return jsonify({
+                "success": True ,
+                "message":data 
+      }) 
+
 
 
 

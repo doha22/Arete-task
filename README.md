@@ -33,7 +33,9 @@ flask run
 
 ## Tasks
 
-1. apply curd 
+ - apply curd (post , get , update , delete) 
+ - sort data in table by header of table
+
 
 
 ## Endpoints 
