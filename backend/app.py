@@ -5,6 +5,7 @@ from database.db import CONNECTION_STRING
 from flask_cors import CORS
 from bson.objectid import ObjectId
 import json
+from bson import json_util
 # import bson.objectid
 
 
@@ -91,7 +92,28 @@ def All_students():
                     "data": data   
         })
    
-   
+
+@app.route('/student/<id>', methods=['GET'])
+def All_students_ID(id):
+
+    collection = db.Student
+    students = collection.find_one({'_id':ObjectId(id)})
+
+    data = json.loads(json_util.dumps(students))
+
+    cur = collection.find()
+    if cur.count()==0: 
+        # no data exist
+        return jsonify({
+                    "success": False ,            
+        },404)
+      
+    else:
+        return jsonify({
+                    "success": True ,
+                    "data": data   
+        })
+
 
 
 
@@ -99,65 +121,127 @@ def All_students():
 @app.route('/modify_students/<id>', methods=['PUT'])
 def modify_students(id):
 
-  
-#   students = Student.objects(grade="A").first()
-#   students.updateMany({})
-  body = request.get_json()
-#   _id= request.url
-#   print(_id)
- 
- 
- #### add condition if id not exist or false , abort(404)
 
-#   student = Student.objects().first()
+  body = request.get_json()
   
   collection = db.Student
-
-
-  updated_data= collection.update(
-       {"id":ObjectId(id)},
-       {"$set":{
-  
-        'name': body.get('name'),
+ 
+  # updated_data= collection.find_one_and_update(
+  #    {"id":ObjectId(id)},
+  #    {"$set":
+  #   {
+  #       'name': body.get('name'),
+  #       'email': body.get('email'),
+  #       'age' : body.get('age'),
+  #       'grade' : body.get('grade'),
+  #       'number' : body.get('number'),
+  #      }},new=True) 
+  updated_data= collection.update_one(
+  {"id": ObjectId(id['$oid']) if "$oid" in "id" else ObjectId(id)}  ,
+  {"$set":
+ {
+     'name': body.get('name'),
+     'address':body.get('address'),
         'email': body.get('email'),
         'age' : body.get('age'),
         'grade' : body.get('grade'),
         'number' : body.get('number'),
-        'address':body.get('address')
-       }
-       },multi = True ,upsert=True)
-#   data = Student.objects('id'==ObjectId(id))  
-#   updated_data= data.update(
-#      {"id":ObjectId(id)},
+  }},upsert=True)
+
+#   data = json.loads(json_util.dumps(updated_data))
+
+
+  
+
+#   data = []
+#   for i in Student.objects().all():
+#      dataJson = i.to_json()
+#      res = json.loads(dataJson)
+#      data.append(res)
+#   data = json.loads(json_util.dumps(updated_data))
+
+  
+##################################
+  # updated_data= collection.update(
+  #      {"id":ObjectId(id)},
+  #      {"$set":{
+  
+  #       'name': body.get('name'),
+  #       'email': body.get('email'),
+  #       'age' : body.get('age'),
+  #       'grade' : body.get('grade'),
+  #       'number' : body.get('number'),
+  #       'address':body.get('address')
+  #      }
+  #      },multi = True ,upsert=True)
+
+##################################################################
+#   data_s = Student.objects('id'==ObjectId(id))  
+#   updated_data= data_s.update(
+#      {"id": ObjectId(id['$oid']) if "$oid" in "id" else ObjectId(id)},
 #     {'$set':{
 #         'name': body.get('name'),
 #         'email': body.get('email'),
 #         'age' : body.get('age'),
 #         'grade' : body.get('grade'),
 #         'number' : body.get('number'),
+#         'address':body.get('address')
 #        }})
-     
-  
+#   data = json.loads(json_util.dumps(updated_data))
+
+ 
   
   if updated_data: 
     return jsonify({
                     "success": True ,
-                    "message":"successed"     
+                    "message":"updated"    
                 })
-  
+  else:
+    # students= collection.find_one({'_id':ObjectId(id)})
+    # data = json.loads(json_util.dumps(students))
+
+    return jsonify({
+                    "success": False ,
+                    "message":"failed"
+                })   
       
 
 
 
 @app.route('/delete-student/<id>', methods=['Delete'])
 def delete_student(id):
-    student = Student.objects('id'==ObjectId(id)).first()
-    data = student.delete()
-    return jsonify({
-                "success": True ,
-                "message":"Deleted"  
-      })
+    # student = Student.objects('id'==ObjectId(id)).first()
+    # data = student.delete_one()
     
+    collection = db.Student
+
+    # students = collection.find_one({'_id':ObjectId(id)})
+    students = collection.find_one({"id": ObjectId(id['$oid']) if "$oid" in "id" else ObjectId(id)})
+
+    if students is None :
+        abort(404)
+
+    else:
+
+        # data = collection.delete_one({'_id':ObjectId(id)}) 
+        data = collection.delete_one({"id": ObjectId(id['$oid']) if "$oid" in "id" else ObjectId(id)})
+
+        # student = Student.objects('id'==ObjectId(id)).first()
+        # data = student.delete_one()
+        
+        if(data):
+            return jsonify({
+                        "success": True ,
+                        "message":"user Deleted" ,
+                        "id" : f"{id}"
+
+            })
+        else:
+            return jsonify({
+                            "success": False ,
+                            "message":"failed"  
+                })   
+        
 
 #just tried
 @app.route('/sort-data', methods=['GET'])
@@ -180,6 +264,21 @@ def sort_student():
 
 
 
+def sorting(arr):
+    min = 0
+    sorted_arr = []
+    for i in range(len(arr)):
+      if arr[i] > min :
+        #   min = arr[i]
+          sorted_arr.push(arr[i])
+      else :
+         min = arr[i]
+
+    
+        
+    return sorted_arr
+
+print(sorting([1,5,3,0,4,12,6,9,0]))
 
 
 
@@ -192,3 +291,5 @@ def home():
     
 if __name__ == "__main__":
     app.run(debug=True)
+
+

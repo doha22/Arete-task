@@ -2,8 +2,8 @@ import os
 import unittest
 import json
 from pymongo import MongoClient
-from database.models import Student
-from database.db import CONNECTION_STRING
+from backend.database.models import Student
+from backend.database.db import CONNECTION_STRING
 
 class StudentTestCase(unittest.TestCase):
 
